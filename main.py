@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import simpledialog, messagebox
 
+
 class Products:
     def __init__(self):
         self.products = [
@@ -14,12 +15,12 @@ class Products:
     def get_products(self):
         return self.products
 
+
 class VendingMachineApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Vending Machine Simulator")
         self.geometry("800x500")  # Set a larger size for the main window
-
 
         # Create a Products instance to access the product data
         self.products_data = Products()
@@ -30,7 +31,10 @@ class VendingMachineApp(tk.Tk):
         self.selected_number = ""
 
         # Create a dictionary to store the quantity of each product
-        self.product_quantities = {product["number"]: tk.IntVar() for product in self.products_data.get_products()}
+        self.product_quantities = {
+            product["number"]: tk.IntVar()
+            for product in self.products_data.get_products()
+        }
 
         # Create the vending machine grid
         self.create_vending_grid()
@@ -77,40 +81,52 @@ class VendingMachineApp(tk.Tk):
 
         # Create buttons for each coin value to add
         for i, coin_value in enumerate(coin_values):
-            coin_button = tk.Button(self, text=f"Add ${coin_value}", command=lambda value=coin_value: self.add_coin(float(value)))
-            coin_button.grid(row=2, column=i+2, padx=5, pady=5)  # Adjusted the row and column indices
+            coin_button = tk.Button(
+                self,
+                text=f"Add ${coin_value}",
+                command=lambda value=coin_value: self.add_coin(float(value)),
+            )
+            coin_button.grid(
+                row=2, column=i + 2, padx=5, pady=5
+            )  # Adjusted the row and column indices
 
         # Create the "Clear" button to reset the current coin value
         clear_button = tk.Button(self, text="Clear", command=self.clear_coins)
-        clear_button.grid(row=2, column=len(coin_values)+2, padx=5, pady=5)  # Adjusted the column index
+        clear_button.grid(
+            row=2, column=len(coin_values) + 2, padx=5, pady=5
+        )  # Adjusted the column index
 
         # Create a label to display the current coin amount
         self.coin_amount_label = tk.Label(self, text="Current Coins: $0.00")
-        self.coin_amount_label.grid(row=3, column=0, columnspan=len(coin_values) + 7, padx=5, pady=5)  # Adjusted the columnspan
-
-
-
+        self.coin_amount_label.grid(
+            row=3, column=0, columnspan=len(coin_values) + 7, padx=5, pady=5
+        )  # Adjusted the columnspan
 
     def create_numpad(self):
         # List of product numbers for the numpad
-        num_pad = [
-            "1", "2", "3",
-            "4", "5", "6",
-            "7", "8", "9",
-            "*", "0", "#"
-        ]
+        num_pad = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"]
 
         # Create buttons for each number in the numpad
         for i, number in enumerate(num_pad):
             row = i // 3
             col = i % 3 + 6  # Adjusted column to align correctly
 
-            num_button = tk.Button(self, text=number, command=lambda num=number: self.on_num_button_click(num))
-            num_button.grid(row=row + 5, column=col+2, padx=2, pady=2)  # Adjusted row to start from 5
+            num_button = tk.Button(
+                self,
+                text=number,
+                command=lambda num=number: self.on_num_button_click(num),
+            )
+            num_button.grid(
+                row=row + 5, column=col + 2, padx=2, pady=2
+            )  # Adjusted row to start from 5
 
         # Create a label to display the typed number
-        self.typed_number_label = tk.Label(self, text="", font=("Arial", 16), bg="lightgray", padx=10, pady=5)
-        self.typed_number_label.grid(row=4, column=8, columnspan=3, padx=5, pady=5)  # Adjusted column and columnspan
+        self.typed_number_label = tk.Label(
+            self, text="", font=("Arial", 16), bg="lightgray", padx=10, pady=5
+        )
+        self.typed_number_label.grid(
+            row=4, column=8, columnspan=3, padx=5, pady=5
+        )  # Adjusted column and columnspan
 
     def add_coin(self, value):
         self.current_coins += value
@@ -146,19 +162,35 @@ class VendingMachineApp(tk.Tk):
         self.countdown_id = None
         if self.selected_number:
             product_number = int(self.selected_number)
-            selected_product = next((product for product in self.products if product["number"] == product_number), None)
+            selected_product = next(
+                (
+                    product
+                    for product in self.products_data.get_products()
+                    if product["number"] == product_number
+                ),
+                None,
+            )
 
             if selected_product:
                 if self.current_coins >= selected_product["price"]:
                     self.current_coins -= selected_product["price"]
                     self.update_coin_label()
-                    messagebox.showinfo("Purchase Successful", f"You purchased {selected_product['name']}.")
+                    messagebox.showinfo(
+                        "Purchase Successful",
+                        f"You purchased {selected_product['name']}.",
+                    )
                 else:
-                    messagebox.showinfo("Insufficient Coins", "You do not have enough coins for this product.")
+                    messagebox.showinfo(
+                        "Insufficient Coins",
+                        "You do not have enough coins for this product.",
+                    )
             else:
-                messagebox.showinfo("Invalid Product Number", "Please enter a valid product number.")
+                messagebox.showinfo(
+                    "Invalid Product Number", "Please enter a valid product number."
+                )
 
         self.clear_typed_number()  # Auto-clear the typed number after purchase or error
+
 
 if __name__ == "__main__":
     app = VendingMachineApp()
