@@ -1,5 +1,5 @@
 
-class Produit:
+    class Produit:
     def __init__(self, nom, prix):
         self.nom = nom
         self.prix = prix
@@ -167,5 +167,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
