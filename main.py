@@ -1,14 +1,49 @@
 import tkinter as tk
 from tkinter import simpledialog, messagebox
+from PIL import Image, ImageTk
+
+BASE_NUMBER = 40
 
 
 class Products:
     def __init__(self):
         self.products = [
-            {"number": 1, "name": "Cola", "price": 1.50, "image": "cola.png"},
-            {"number": 2, "name": "Chips", "price": 1.00, "image": "chips.png"},
-            {"number": 3, "name": "Candy", "price": 0.75, "image": "candy.png"},
-            {"number": 4, "name": "Water", "price": 0.90, "image": "water.png"},
+            {
+                "number": BASE_NUMBER + 0,
+                "name": "Cola",
+                "price": 1.50,
+                "image": "cola.png",
+            },
+            {
+                "number": BASE_NUMBER + 1,
+                "name": "Chips",
+                "price": 1.00,
+                "image": "chips.png",
+            },
+            {
+                "number": BASE_NUMBER + 2,
+                "name": "Candy",
+                "price": 0.75,
+                "image": "candy.png",
+            },
+            {
+                "number": BASE_NUMBER + 3,
+                "name": "Water",
+                "price": 0.90,
+                "image": "water.png",
+            },
+            {
+                "number": BASE_NUMBER + 4,
+                "name": "Chips2",
+                "price": 1.25,
+                "image": "chips_paprika.png",
+            },
+            {
+                "number": BASE_NUMBER + 5,
+                "name": "snickers",
+                "price": 2.00,
+                "image": "snickers.png",
+            },
             # Add more products as needed
         ]
 
@@ -137,7 +172,9 @@ class CoinInputWindow(tk.Toplevel):
             coin_button.grid(row=i // 2, column=i % 2, padx=5, pady=5)
 
         clear_button = tk.Button(self, text="Clear", command=self.clear_and_close)
-        clear_button.grid(row=len(coin_values) // 2, columnspan=2, padx=5, pady=5)
+        clear_button.grid(
+            row=len(coin_values) // 2, column=3, columnspan=2, padx=5, pady=5
+        )
 
     def clear_and_close(self):
         self.master.clear_coins()
@@ -152,6 +189,9 @@ class VendingMachineApp(tk.Tk):
 
         # Call the method to set the background image
         self.set_background()
+
+        # Create a list to store all the PhotoImage instances for the product images
+        self.product_images = []
 
         # Create a Products and inventory instance to access the product data
         self.products_data = Products()
@@ -193,36 +233,134 @@ class VendingMachineApp(tk.Tk):
         bg_label.image = bg_image
 
     def create_vending_grid(self):
+        max_product_number = (
+            BASE_NUMBER + 29
+        )  # The maximum product number you want to display
+
+        # Create a dictionary to store the product number and its corresponding image
+        product_images_dict = {}
+
+        for product in self.products_data.get_products():
+            number = product["number"]
+            image_path = f"assets/img/{product['image']}"
+
+            if number <= max_product_number:
+                name = product["name"]
+                price = product["price"]
+                image_path = f"assets/img/{product['image']}"
+
+                # Open the image using Pillow
+                img_pil = Image.open(image_path)
+
+                # Calculate the downsampling factor to limit the dimensions to 50x50 pixels
+                img_pil.thumbnail((50, 50))
+
+                # Convert the Pillow image to ImageTk format for tkinter
+                img = ImageTk.PhotoImage(img_pil)
+
+                # Store the image in the dictionary
+                product_images_dict[number] = img
+
+                # Append the PhotoImage instance to the product_images list
+                self.product_images.append(img)
+
+                # Create and display the image label
+                row = (number - BASE_NUMBER) // 5
+                col = (number - BASE_NUMBER) % 5
+
+                image_label = tk.Label(self, image=img)
+                image_label.image = img
+                image_label.grid(row=row + 1, column=col, padx=5, pady=5)
+                image_label.place(x=col * 45 + 122, y=row * 73 + 153, anchor="center")
+
+                # Create and display the product number label
+                info_label_number = tk.Label(self, text=f"{number}")
+                info_label_number.grid(row=row + 1, column=col, padx=5, pady=5)
+                info_label_number.place(
+                    x=col * 45 + 122, y=row * 73 + 175, anchor="center"
+                )
+
+                # Create and display the product price label
+                info_label = tk.Label(self, text=f"€{price:.2f}")
+                info_label.grid(row=row + 1, column=col, padx=5, pady=5)
+                info_label.place(x=col * 45 + 122, y=row * 73 + 190, anchor="center")
+
+        # Create empty slot labels for product numbers without products
+        for number in range(BASE_NUMBER, max_product_number + 1):
+            if number not in product_images_dict:
+                row = (number - BASE_NUMBER) // 5
+                col = (number - BASE_NUMBER) % 5
+
+                empty_slot_label = tk.Label(
+                    self, text="Empty Slot", font=("Arial", 12), fg="red"
+                )
+                empty_slot_label.grid(row=row + 1, column=col, padx=5, pady=5)
+                empty_slot_label.place(
+                    x=col * 45 + 122, y=row * 73 + 190, anchor="center"
+                )
+
+                """
+                # Create a label to display the image
+                image_label = tk.Label(self, image=img)
+                image_label.image = img
+
+                row = (number - BASE_NUMBER) // 5
+                col = (number - BASE_NUMBER) % 5
+
+                image_label.grid(row=row + 1, column=col, padx=5, pady=5)
+                image_label.place(x=col * 45 + 122, y=row * 73 + 153, anchor="center")
+
+                # Create a label to display the product number, name, and price
+                info_label_number = tk.Label(self, text=f"{number}")
+                info_label_number.grid(row=row + 1, column=col, padx=5, pady=5)
+                info_label_number.place(
+                    x=col * 45 + 122, y=row * 73 + 175, anchor="center"
+                )
+
+                info_label = tk.Label(self, text=f"€{price:.2f}")
+                info_label.grid(row=row + 1, column=col, padx=5, pady=5)
+                info_label.place(x=col * 45 + 122, y=row * 73 + 190, anchor="center")
+                """
+
+        """
         for product in self.products_data.get_products():
             number = product["number"]
             name = product["name"]
             price = product["price"]
             image_path = f"assets/img/{product['image']}"
 
-            # Load the image from the file
-            img = tk.PhotoImage(file=image_path)
+            # Open the image using Pillow
+            img_pil = Image.open(image_path)
 
-            # Calculate the downsampling factor to limit the dimensions to 70x70 pixels
-            width = img.width()
-            height = img.height()
-            downsample_factor = max(1, width // 50, height // 50)
+            # Calculate the downsampling factor to limit the dimensions to 50x50 pixels
+            img_pil.thumbnail((50, 50))
 
-            # Resize the image by downsampling
-            img = img.subsample(downsample_factor)
+            # Convert the Pillow image to ImageTk format for tkinter
+            img = ImageTk.PhotoImage(img_pil)
 
             # Create a label to display the image
             image_label = tk.Label(self, image=img)
             image_label.image = img
 
-            row = (number - 1) // 6
-            col = (number - 1) % 6
+            row = (number - BASE_NUMBER) // 5
+            col = (number - BASE_NUMBER) % 5
 
             image_label.grid(row=row + 1, column=col, padx=5, pady=5)
-            image_label.place(x=col * 45 + 120, y=row * 100 + 150, anchor="center")
+            image_label.place(x=col * 45 + 122, y=row * 73 + 153, anchor="center")
 
             # Create a label to display the product number, name, and price
-            # info_label = tk.Label(self, text=f"{number}. {name} - ${price:.2f}")
-            # info_label.grid(row=number, column=0, padx=5, pady=5)
+            info_label_number = tk.Label(self, text=f"{number}")
+            info_label_number.grid(row=row + 1, column=col, padx=5, pady=5)
+            info_label_number.place(x=col * 45 + 122, y=row * 73 + 175, anchor="center")
+
+            info_label = tk.Label(self, text=f"€{price:.2f}")
+            info_label.grid(row=row + 1, column=col, padx=5, pady=5)
+            info_label.place(x=col * 45 + 122, y=row * 73 + 190, anchor="center")
+            """
+
+    def create_rotated_text(canvas, x, y, text, angle):
+        # Draw the text on the canvas with the specified rotation angle
+        return canvas.create_text(x, y, text=text, angle=angle, anchor="nw")
 
     def create_buy_button(self):
         buy_button = tk.Button(
