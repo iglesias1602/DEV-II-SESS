@@ -169,7 +169,9 @@ class CoinInputWindow(tk.Toplevel):
     def __init__(self, parent, add_coin_callback):
         super().__init__(parent)
         self.title("Coin Input")
-        self.geometry("325x250")
+        self.geometry("325x275")
+
+        self.resizable(False, False)
 
         coin_values = ["0.05", "0.10", "0.20", "1.00", "2.00"]
         coin_images = [
@@ -198,9 +200,28 @@ class CoinInputWindow(tk.Toplevel):
 
             coin_button.grid(row=i // 2, column=i % 2, padx=5, pady=5)
 
-        clear_button = tk.Button(self, text="Clear", command=self.clear_and_close)
+        continue_button = tk.Button(
+            self,
+            text="Continue Transaction",
+            command=self.destroy,
+            bg="green",
+            fg="white",
+            font=("Arial", 8, "bold"),
+        )
+        continue_button.grid(
+            row=len(coin_values) // 2 + 1, column=2 - 1, columnspan=5, padx=5, pady=0
+        )
+
+        clear_button = tk.Button(
+            self,
+            text="Cancel Transaction",
+            command=self.clear_and_close,
+            bg="red",
+            fg="white",
+            font=("Arial", 8, "bold"),
+        )
         clear_button.grid(
-            row=len(coin_values) // 2, column=2, columnspan=2, padx=5, pady=5
+            row=len(coin_values) // 2, column=2 - 1, columnspan=2, padx=5, pady=5
         )
 
     def clear_and_close(self):
