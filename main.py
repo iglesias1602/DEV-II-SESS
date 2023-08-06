@@ -44,7 +44,13 @@ class Products:
                 "price": 2.00,
                 "image": "snickers.png",
             },
-            # Add more products as needed
+            {
+                "number": BASE_NUMBER + 13,
+                "name": "GranolaBar",
+                "price": 1.80,
+                "image": "granola_bar.png",
+            }
+            # Add more products as needed max #69
         ]
 
     def get_products(self):
@@ -135,6 +141,9 @@ class Transaction:
         )
         self.show_stock_left_message(stock_left, selected_product)
 
+        # Call the method to display the copied image after a successful purchase
+        self.app.display_copied_image(selected_product["number"])
+
     def show_out_of_stock_message(self, selected_product):
         messagebox.showerror(
             "Out of Stock", f"{selected_product['name']} is out of stock."
@@ -187,11 +196,16 @@ class VendingMachineApp(tk.Tk):
         self.title("Vending Machine Simulator")
         self.geometry("650x840")  # Set a larger size for the main window
 
+        self.copied_image_label = None  # Add this line to store the label reference
+
         # Call the method to set the background image
         self.set_background()
 
         # Create a list to store all the PhotoImage instances for the product images
         self.product_images = []
+
+        # Create a dictionary to store the product number and its corresponding image
+        self.product_images_dict = {}
 
         # Create a Products and inventory instance to access the product data
         self.products_data = Products()
@@ -232,6 +246,24 @@ class VendingMachineApp(tk.Tk):
         # Make sure to keep a reference to the image, otherwise it will be garbage collected
         bg_label.image = bg_image
 
+    def display_copied_image(self, product_number):
+        # Get the PhotoImage object of the purchased product from the dictionary
+        copied_img = self.product_images_dict[product_number]
+
+        # If there is a previous copied image label, destroy it first
+        if self.copied_image_label:
+            self.copied_image_label.destroy()
+
+        # Create a label to display the copied image at the bottom of the window
+        self.copied_image_label = tk.Label(self, image=copied_img)
+        self.copied_image_label.image = copied_img
+
+        # Place the copied image label at the desired location at the bottom of the window
+        self.copied_image_label.place(x=220, y=595)  # Adjust the coordinates as needed
+
+        # Schedule the removal of the copied image after 3 seconds
+        self.after(3000, self.remove_copied_image)
+
     def create_vending_grid(self):
         max_product_number = (
             BASE_NUMBER + 29
@@ -260,6 +292,9 @@ class VendingMachineApp(tk.Tk):
 
                 # Store the image in the dictionary
                 product_images_dict[number] = img
+
+                # Store the image in the dictionary with the product number as the key
+                self.product_images_dict[number] = img
 
                 # Append the PhotoImage instance to the product_images list
                 self.product_images.append(img)
@@ -297,12 +332,22 @@ class VendingMachineApp(tk.Tk):
                     font=("Arial", 18),
                     fg="red",
                 )
-                empty_slot_label.pack()
-
                 empty_slot_label.grid(row=row + 1, column=col, padx=5, pady=5)
                 empty_slot_label.place(
                     x=col * 45 + 123, y=row * 73 + 150, anchor="center"
                 )
+
+                # Create and display the product number label
+                info_label_number = tk.Label(self, text=f"{number}")
+                info_label_number.grid(row=row + 1, column=col, padx=5, pady=5)
+                info_label_number.place(
+                    x=col * 45 + 122, y=row * 73 + 175, anchor="center"
+                )
+
+    def remove_copied_image(self):
+        if self.copied_image_label:
+            self.copied_image_label.destroy()
+            self.copied_image_label = None
 
     def create_buy_button(self):
         buy_button = tk.Button(
