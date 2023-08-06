@@ -292,75 +292,17 @@ class VendingMachineApp(tk.Tk):
                 col = (number - BASE_NUMBER) % 5
 
                 empty_slot_label = tk.Label(
-                    self, text="Empty Slot", font=("Arial", 12), fg="red"
+                    self,
+                    text="🚫",
+                    font=("Arial", 18),
+                    fg="red",
                 )
+                empty_slot_label.pack()
+
                 empty_slot_label.grid(row=row + 1, column=col, padx=5, pady=5)
                 empty_slot_label.place(
-                    x=col * 45 + 122, y=row * 73 + 190, anchor="center"
+                    x=col * 45 + 123, y=row * 73 + 150, anchor="center"
                 )
-
-                """
-                # Create a label to display the image
-                image_label = tk.Label(self, image=img)
-                image_label.image = img
-
-                row = (number - BASE_NUMBER) // 5
-                col = (number - BASE_NUMBER) % 5
-
-                image_label.grid(row=row + 1, column=col, padx=5, pady=5)
-                image_label.place(x=col * 45 + 122, y=row * 73 + 153, anchor="center")
-
-                # Create a label to display the product number, name, and price
-                info_label_number = tk.Label(self, text=f"{number}")
-                info_label_number.grid(row=row + 1, column=col, padx=5, pady=5)
-                info_label_number.place(
-                    x=col * 45 + 122, y=row * 73 + 175, anchor="center"
-                )
-
-                info_label = tk.Label(self, text=f"€{price:.2f}")
-                info_label.grid(row=row + 1, column=col, padx=5, pady=5)
-                info_label.place(x=col * 45 + 122, y=row * 73 + 190, anchor="center")
-                """
-
-        """
-        for product in self.products_data.get_products():
-            number = product["number"]
-            name = product["name"]
-            price = product["price"]
-            image_path = f"assets/img/{product['image']}"
-
-            # Open the image using Pillow
-            img_pil = Image.open(image_path)
-
-            # Calculate the downsampling factor to limit the dimensions to 50x50 pixels
-            img_pil.thumbnail((50, 50))
-
-            # Convert the Pillow image to ImageTk format for tkinter
-            img = ImageTk.PhotoImage(img_pil)
-
-            # Create a label to display the image
-            image_label = tk.Label(self, image=img)
-            image_label.image = img
-
-            row = (number - BASE_NUMBER) // 5
-            col = (number - BASE_NUMBER) % 5
-
-            image_label.grid(row=row + 1, column=col, padx=5, pady=5)
-            image_label.place(x=col * 45 + 122, y=row * 73 + 153, anchor="center")
-
-            # Create a label to display the product number, name, and price
-            info_label_number = tk.Label(self, text=f"{number}")
-            info_label_number.grid(row=row + 1, column=col, padx=5, pady=5)
-            info_label_number.place(x=col * 45 + 122, y=row * 73 + 175, anchor="center")
-
-            info_label = tk.Label(self, text=f"€{price:.2f}")
-            info_label.grid(row=row + 1, column=col, padx=5, pady=5)
-            info_label.place(x=col * 45 + 122, y=row * 73 + 190, anchor="center")
-            """
-
-    def create_rotated_text(canvas, x, y, text, angle):
-        # Draw the text on the canvas with the specified rotation angle
-        return canvas.create_text(x, y, text=text, angle=angle, anchor="nw")
 
     def create_buy_button(self):
         buy_button = tk.Button(
