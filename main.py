@@ -169,20 +169,38 @@ class CoinInputWindow(tk.Toplevel):
     def __init__(self, parent, add_coin_callback):
         super().__init__(parent)
         self.title("Coin Input")
-        self.geometry("250x200")
+        self.geometry("325x250")
 
         coin_values = ["0.05", "0.10", "0.20", "1.00", "2.00"]
+        coin_images = [
+            "coin_5c.png",
+            "coin_10c.png",
+            "coin_20c.png",
+            "coin_1e.png",
+            "coin_2e.png",
+        ]
         for i, coin_value in enumerate(coin_values):
+            img_path = f"assets/img/{coin_images[i]}"
+            coin_img = Image.open(img_path)
+            coin_img = coin_img.resize((60, 60))
+            coin_img = ImageTk.PhotoImage(coin_img)
+
             coin_button = tk.Button(
                 self,
-                text=f"Add ${coin_value}",
+                text=f"Add €{coin_value}",
+                image=coin_img,  # Set the image for the button,
+                compound=tk.LEFT,  # Display the image to the left of the text
                 command=lambda value=coin_value: add_coin_callback(float(value)),
             )
+            coin_button.image = (
+                coin_img  # Keep a reference to the image to avoid garbage collection
+            )
+
             coin_button.grid(row=i // 2, column=i % 2, padx=5, pady=5)
 
         clear_button = tk.Button(self, text="Clear", command=self.clear_and_close)
         clear_button.grid(
-            row=len(coin_values) // 2, column=3, columnspan=2, padx=5, pady=5
+            row=len(coin_values) // 2, column=2, columnspan=2, padx=5, pady=5
         )
 
     def clear_and_close(self):
