@@ -213,7 +213,12 @@ class VendingMachineApp(tk.Tk):
             # Create a label to display the image
             image_label = tk.Label(self, image=img)
             image_label.image = img
-            image_label.grid(row=number, column=1, padx=5, pady=5)
+
+            row = (number - 1) // 6
+            col = (number - 1) % 6
+
+            image_label.grid(row=row + 1, column=col, padx=5, pady=5)
+            image_label.place(x=col * 45 + 120, y=row * 100 + 150, anchor="center")
 
             # Create a label to display the product number, name, and price
             # info_label = tk.Label(self, text=f"{number}. {name} - ${price:.2f}")
