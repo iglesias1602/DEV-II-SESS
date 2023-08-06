@@ -225,7 +225,14 @@ class VendingMachineApp(tk.Tk):
             # info_label.grid(row=number, column=0, padx=5, pady=5)
 
     def create_buy_button(self):
-        buy_button = tk.Button(self, text="Buy", command=self.show_coin_input_window)
+        buy_button = tk.Button(
+            self,
+            text="Buy",
+            command=self.show_coin_input_window,
+            bg="green",
+            fg="white",
+            font=("Arial", 10),
+        )
         buy_button.grid(row=1, column=2, padx=5, pady=5)
         buy_button.place(x=375, y=245, anchor="center")
 
