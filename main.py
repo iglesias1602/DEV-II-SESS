@@ -46,7 +46,7 @@ class Products:
             },
             {
                 "number": BASE_NUMBER + 13,
-                "name": "GranolaBar",
+                "name": "Granola Bar",
                 "price": 1.80,
                 "image": "granola_bar.png",
             }
@@ -290,7 +290,7 @@ class ProductManagementWindow(tk.Toplevel):
 
             # Display the product image on the canvas
             if image:
-                self.canvas.create_image(x, y, image=image, anchor="nw")
+                self.canvas.create_image(x - 10, y - 10, image=image, anchor="nw")
 
             # Add a label with the product name below the image
             product_name = product["name"]
