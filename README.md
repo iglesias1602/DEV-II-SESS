@@ -1,11 +1,12 @@
 <h1 align="center">Welcome to Vending Machine App 👋</h1>
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-0.1.0-blue.svg?cacheSeconds=2592000" />
-
-  <a href="https://github.com/kefranabg/readme-md-generator#readme" target="_blank">
+  <a href="https://github.com/iglesias1602/DEV-II-SESS/releases/tag/v0.1.0-Alpha">
+    <img alt="Version" src="https://img.shields.io/badge/version-0.1.0-blue.svg?cacheSeconds=2592000" />
+  </a>
+  <a href="https://github.com/iglesias1602/DEV-II-SESS/blob/main/README.md" target="_blank">
     <img alt="Documentation" src="https://img.shields.io/badge/documentation-WIP-blue.svg" />
   </a>
-  <a href="https://github.com/kefranabg/readme-md-generator/graphs/commit-activity" target="_blank">
+  <a href="https://github.com/iglesias1602/DEV-II-SESS/graphs/commit-activity" target="_blank">
     <img alt="Maintenance" src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" />
   </a>
   <a href="https://github.com/iglesias1602/DEV-II-SESS/blob/main/LICENSE" target="_blank">
