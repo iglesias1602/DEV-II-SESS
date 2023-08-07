@@ -46,9 +46,9 @@ WIP
 
 👤 **Carlos IGLESIAS & Marwa CHENNAOUI**
 
-- Twitter: [@krlosigle](https://twitter.com/krlosigle)
-- GitHub: [@iglesias1602](https://github.com/iglesias1602)
-- LinkedIn: [@iglesias1602](https://linkedin.com/in/iglesias1602)
+- Twitter: [@krlosigle](https://twitter.com/krlosigle) & ~~Marwa~~
+- GitHub: [@iglesias1602](https://github.com/iglesias1602) & [@marwa522](https://github.com/marwa522)
+- LinkedIn: [@iglesias1602](https://linkedin.com/in/iglesias1602) & [@marwa522](https://www.linkedin.com/in/chennaoui-marwa-0b8b641ab/)
 
 ## 🤝 Contributing
 
