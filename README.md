@@ -9,7 +9,7 @@
     <img alt="Maintenance" src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" />
   </a>
   <a href="https://github.com/iglesias1602/DEV-II-SESS/blob/main/LICENSE" target="_blank">
-    <img alt="License: MIT" src="https://img.shields.io/github/license/iglesias1602/Vending Machine App" />
+    <img alt="License: MIT" src="https://img.shields.io/github/license/iglesias1602/DEV-II-SESS" />
   </a>
   <a href="https://twitter.com/krlosigle" target="_blank">
     <img alt="Twitter: krlosigle" src="https://img.shields.io/twitter/follow/krlosigle.svg?style=social" />
