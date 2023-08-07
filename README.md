@@ -60,7 +60,7 @@ Contributions, issues and feature requests are welcome!<br />Feel free to check 
 
 ## 📝 License
 
-Copyright © 2023 [Carlos IGLESIAS & Marwa CHENNAOUI](https://github.com/iglesias1602).<br />
+Copyright © 2023 [Carlos IGLESIAS](https://github.com/iglesias1602) & [Marwa CHENNAOUI](https://github.com/marwa522).<br />
 This project is [MIT](https://github.com/kefranabg/readme-md-generator/blob/master/LICENSE) licensed.
 
 ---
