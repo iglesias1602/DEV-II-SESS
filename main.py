@@ -46,7 +46,7 @@ class Products:
             },
             {
                 "number": BASE_NUMBER + 13,
-                "name": "GranolaBar",
+                "name": "Granola Bar",
                 "price": 1.80,
                 "image": "granola_bar.png",
             }
@@ -230,21 +230,41 @@ class CoinInputWindow(tk.Toplevel):
 
 
 class ProductManagementWindow(tk.Toplevel):
-    def __init__(self, parent, products):
+    def __init__(self, parent, products_data):
         super().__init__(parent)
         self.title("Product Management")
-        self.geometry("800x600")
-        self.products_data = products
+        self.geometry("800x800")
+
+        self.products_data = products_data
 
         # Create a canvas to display the product grid
-        self.canvas = tk.Canvas(self, bg="white", width=800, height=800)
+        self.canvas = tk.Canvas(self, bg="white", width=375, height=750)
         self.canvas.pack()
+        self.canvas.place(x=10, y=10, anchor="nw")
 
         # Create a dictionary to store the product number and its corresponding image
         self.product_images = {}
 
         # Load the product images and store them in the product_images dictionary
         self.load_product_images()
+
+        # Initialize the selected product as None
+        self.selected_product = None
+
+        # Create the buttons
+        self.edit_button = tk.Button(self, text="Edit", command=self.edit_product)
+        self.edit_button.place(x=450, y=100)
+
+        self.delete_button = tk.Button(self, text="Delete", command=self.delete_product)
+        self.delete_button.place(x=450, y=150)
+
+        self.add_button = tk.Button(self, text="Add", command=self.add_product)
+        self.add_button.place(x=450, y=200)
+
+        # Initially, disable all buttons
+        self.edit_button["state"] = tk.DISABLED
+        self.delete_button["state"] = tk.DISABLED
+        self.add_button["state"] = tk.DISABLED
 
         self.create_product_grid()
 
@@ -288,21 +308,38 @@ class ProductManagementWindow(tk.Toplevel):
             x = col * cell_width + 50
             y = row * cell_height + 50
 
+            # Draw a rectangle to represent the cell
+            cell_rectangle = self.canvas.create_rectangle(
+                x - cell_width / 2,
+                y - cell_height / 2,
+                x + cell_width / 2,
+                y + cell_height / 2,
+                outline="blue",
+                width=2,
+                tags=f"cell_{product['number']}",
+            )
+
             # Display the product image on the canvas
             if image:
-                self.canvas.create_image(x, y, image=image, anchor="nw")
+                self.canvas.create_image(
+                    x,
+                    y + 20,
+                    image=image,
+                    anchor="center",
+                )
 
             # Add a label with the product name below the image
             product_name = product["name"]
             self.canvas.create_text(x, y + 55, text=product_name, font=("Arial", 12))
 
-            # Bind the product image to a callback for modification
-            if image:
-                self.canvas.tag_bind(
-                    image,
-                    "<Button-1>",
-                    lambda event, number=number: self.edit_product(number),
-                )
+            # Bind the click event to the rectangle representing the cell
+            self.canvas.tag_bind(
+                f"cell_{product['number']}",
+                "<Button-1>",
+                lambda event, number=product["number"]: self.on_cell_click(
+                    event, number
+                ),
+            )
 
         # Draw empty slots for product numbers without products
         for product_number in range(BASE_NUMBER, BASE_NUMBER + 30):
@@ -317,6 +354,17 @@ class ProductManagementWindow(tk.Toplevel):
                 x = col * cell_width + 50
                 y = row * cell_height + 50
 
+                # Draw a rectangle to represent the empty cell
+                cell_rectangle = self.canvas.create_rectangle(
+                    x - cell_width / 2,
+                    y - cell_height / 2,
+                    x + cell_width / 2,
+                    y + cell_height / 2,
+                    outline="blue",
+                    width=2,
+                    tags=f"cell_{product_number}",  # Add the tag to the empty cell
+                )
+
                 # Display an empty slot on the canvas
                 self.canvas.create_text(
                     x, y, text="🚫", font=("Arial", 30), anchor="center"
@@ -330,6 +378,52 @@ class ProductManagementWindow(tk.Toplevel):
                     font=("Arial", 12),
                     anchor="center",
                 )
+
+                # Bind the click event to the empty cell
+                self.canvas.tag_bind(
+                    f"cell_{product_number}",
+                    "<Button-1>",
+                    lambda event, number=product_number: self.on_cell_click(
+                        event, number
+                    ),
+                )
+
+    def on_cell_click(self, event, product_number):
+        # Update the selected product based on the product number
+        self.selected_product = next(
+            (
+                product
+                for product in self.products_data
+                if product["number"] == product_number
+            ),
+            None,
+        )
+
+        # Update the state of the buttons based on whether the slot is empty or not
+        if self.selected_product:
+            # Slot has a product, enable "Edit" and "Delete" buttons, disable "Add" button
+            self.edit_button["state"] = tk.NORMAL
+            self.delete_button["state"] = tk.NORMAL
+            self.add_button["state"] = tk.DISABLED
+        else:
+            # Slot is empty, enable "Add" button, disable "Edit" and "Delete" buttons
+            self.edit_button["state"] = tk.DISABLED
+            self.delete_button["state"] = tk.DISABLED
+            self.add_button["state"] = tk.NORMAL
+
+    def edit_product(self):
+        if self.selected_product:
+            # TODO: Implement the edit product functionality
+            print("Edit product:", self.selected_product)
+
+    def delete_product(self):
+        if self.selected_product:
+            # TODO: Implement the delete product functionality
+            print("Delete product:", self.selected_product)
+
+    def add_product(self):
+        # TODO: Implement the add product functionality
+        print("Add product, selected number:", self.selected_product["number"])
 
 
 class VendingMachineApp(tk.Tk):
