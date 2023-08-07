@@ -8,8 +8,8 @@
   <a href="https://github.com/kefranabg/readme-md-generator/graphs/commit-activity" target="_blank">
     <img alt="Maintenance" src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" />
   </a>
-  <a href="https://github.com/kefranabg/readme-md-generator/blob/master/LICENSE" target="_blank">
-    <img alt="License: MIT" src="https://img.shields.io/github/license/iglesias1602/Vending Machine App" />
+  <a href="https://github.com/iglesias1602/DEV-II-SESS/blob/main/LICENSE" target="_blank">
+    <img alt="License: MIT" src="https://img.shields.io/github/license/iglesias1602/DEV-II-SESS" />
   </a>
   <a href="https://twitter.com/krlosigle" target="_blank">
     <img alt="Twitter: krlosigle" src="https://img.shields.io/twitter/follow/krlosigle.svg?style=social" />
@@ -61,7 +61,7 @@ Contributions, issues and feature requests are welcome!<br />Feel free to check 
 ## 📝 License
 
 Copyright © 2023 [Carlos IGLESIAS](https://github.com/iglesias1602) & [Marwa CHENNAOUI](https://github.com/marwa522).<br />
-This project is [MIT](https://github.com/kefranabg/readme-md-generator/blob/master/LICENSE) licensed.
+This project is [MIT](https://github.com/iglesias1602/DEV-II-SESS/blob/main/LICENSE) licensed.
 
 ---
 
