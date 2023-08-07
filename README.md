@@ -1,6 +1,6 @@
 <h1 align="center">Welcome to Vending Machine App 👋</h1>
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-0.5.0-blue.svg?cacheSeconds=2592000" />
+  <img alt="Version" src="https://img.shields.io/badge/version-0.1.0-blue.svg?cacheSeconds=2592000" />
 
   <a href="https://github.com/kefranabg/readme-md-generator#readme" target="_blank">
     <img alt="Documentation" src="https://img.shields.io/badge/documentation-WIP-brightgreen.svg" />
@@ -22,25 +22,30 @@
 
 ## Prerequisites
 
-- WIP
+- Python 3.X.X version (preferable 3.10)
+  -pyinstaller
 
 ## Install
 
+To create a package you have to first install pyinstaller in the command line with:
+
 ```sh
-WIP
+pip install pyinstaller
 ```
 
 ## Usage
 
-```sh
-WIP
-```
-
-## Run tests
+On the directory where the program has been installed run this command in the command line:
 
 ```sh
-WIP
+pyinstaller main.py --onefile
 ```
+
+This will create an executable file that now can be open and ready to run
+
+~~## Run tests~~
+
+~~`sh WIP`~~
 
 ## Author
 
