@@ -19,38 +19,37 @@
 
 > Projet pour le cours de DEV II 2023 à l'EPHEC Louvain-la-Neuve, ce projet consiste en un simulateur de distributeur automatique, dans ce programme vous trouverez le fonctionnalités basiques d'un distributeur automatique avec aussi un &#34;Manager&#34; des produits pour ajouter ou supprimer des éléments qui sont dans la machine
 
-### 🏠 [Homepage](https://github.com/iglesias1602/DEV-II-SESS/blob/main/README.md)
+### 🏠 [Homepage](https://github.com/iglesias1602/DEV-II-SESS/tree/Product-Management-Window)
 
 ## Prerequisites
 
-- npm >=5.5.0
-- node >=9.3.0
+- WIP
 
 ## Install
 
 ```sh
-npm install
+WIP
 ```
 
 ## Usage
 
 ```sh
-npm run start
+WIP
 ```
 
 ## Run tests
 
 ```sh
-npm run test
+WIP
 ```
 
 ## Author
 
 👤 **Carlos IGLESIAS & Marwa CHENNAOUI**
 
-* Twitter: [@krlosigle](https://twitter.com/krlosigle)
-* GitHub: [@iglesias1602](https://github.com/iglesias1602)
-* LinkedIn: [@iglesias1602](https://linkedin.com/in/iglesias1602)
+- Twitter: [@krlosigle](https://twitter.com/krlosigle)
+- GitHub: [@iglesias1602](https://github.com/iglesias1602)
+- LinkedIn: [@iglesias1602](https://linkedin.com/in/iglesias1602)
 
 ## 🤝 Contributing
 
@@ -65,5 +64,6 @@ Give a ⭐️ if this project helped you!
 Copyright © 2023 [Carlos IGLESIAS & Marwa CHENNAOUI](https://github.com/iglesias1602).<br />
 This project is [MIT](https://github.com/kefranabg/readme-md-generator/blob/master/LICENSE) licensed.
 
-***
+---
+
 _This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)_
