@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import simpledialog, messagebox
+from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 
 BASE_NUMBER = 40
@@ -40,7 +40,7 @@ class Products:
             },
             {
                 "number": BASE_NUMBER + 5,
-                "name": "snickers",
+                "name": "Snickers",
                 "price": 2.00,
                 "image": "snickers.png",
             },
@@ -229,11 +229,115 @@ class CoinInputWindow(tk.Toplevel):
         self.destroy()
 
 
+class ProductManagementWindow(tk.Toplevel):
+    def __init__(self, parent, products):
+        super().__init__(parent)
+        self.title("Product Management")
+        self.geometry("800x600")
+        self.products_data = products
+
+        # Create a canvas to display the product grid
+        self.canvas = tk.Canvas(self, bg="white", width=800, height=800)
+        self.canvas.pack()
+
+        # Create a dictionary to store the product number and its corresponding image
+        self.product_images = {}
+
+        # Load the product images and store them in the product_images dictionary
+        self.load_product_images()
+
+        self.create_product_grid()
+
+    def load_product_images(self):
+        for product in self.products_data:
+            number = product["number"]
+            image_path = f"assets/img/{product['image']}"
+
+            # Open the image using Pillow
+            img_pil = Image.open(image_path)
+
+            # Calculate the downsampling factor to limit the dimensions to 50x50 pixels
+            img_pil.thumbnail((50, 50))
+
+            # Convert the Pillow image to ImageTk format for tkinter
+            img = ImageTk.PhotoImage(img_pil)
+
+            # Store the image in the product_images dictionary
+            self.product_images[number] = img
+
+    def create_product_grid(self):
+        # Clear previous content on the canvas
+        self.canvas.delete("all")
+
+        # Define cell dimensions
+        cell_width = 70
+        cell_height = 120  # Increase the cell height to accommodate product names
+
+        # Sort the products based on their product numbers
+        sorted_products = sorted(self.products_data, key=lambda item: item["number"])
+
+        for product in sorted_products:
+            number = product["number"]
+            image = self.product_images.get(number)
+
+            # Calculate the row and column based on the product number
+            row = (number - BASE_NUMBER) // 5
+            col = (number - BASE_NUMBER) % 5
+
+            # Calculate the position of the cell on the canvas
+            x = col * cell_width + 50
+            y = row * cell_height + 50
+
+            # Display the product image on the canvas
+            if image:
+                self.canvas.create_image(x, y, image=image, anchor="nw")
+
+            # Add a label with the product name below the image
+            product_name = product["name"]
+            self.canvas.create_text(x, y + 55, text=product_name, font=("Arial", 12))
+
+            # Bind the product image to a callback for modification
+            if image:
+                self.canvas.tag_bind(
+                    image,
+                    "<Button-1>",
+                    lambda event, number=number: self.edit_product(number),
+                )
+
+        # Draw empty slots for product numbers without products
+        for product_number in range(BASE_NUMBER, BASE_NUMBER + 30):
+            if not any(
+                product["number"] == product_number for product in sorted_products
+            ):
+                # Calculate the row and column based on the product number
+                row = (product_number - BASE_NUMBER) // 5
+                col = (product_number - BASE_NUMBER) % 5
+
+                # Calculate the position of the cell on the canvas
+                x = col * cell_width + 50
+                y = row * cell_height + 50
+
+                # Display an empty slot on the canvas
+                self.canvas.create_text(
+                    x, y, text="🚫", font=("Arial", 30), anchor="center"
+                )
+
+                # Add a label with the product number below the empty slot
+                self.canvas.create_text(
+                    x,
+                    y + 60,
+                    text=str(product_number),
+                    font=("Arial", 12),
+                    anchor="center",
+                )
+
+
 class VendingMachineApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Vending Machine Simulator")
         self.geometry("650x840")  # Set a larger size for the main window
+        self.resizable(False, False)
 
         self.copied_image_label = None  # Add this line to store the label reference
 
@@ -273,6 +377,11 @@ class VendingMachineApp(tk.Tk):
 
         # Variable to store the id of the scheduled countdown
         self.countdown_id = None
+
+        # Create a set to store the product numbers present in the vending machine
+        self.product_numbers = set(
+            product["number"] for product in self.products_data.get_products()
+        )
 
     def set_background(self):
         # Load the image file
@@ -467,7 +576,9 @@ class VendingMachineApp(tk.Tk):
         )  # Adjusted column and columnspan
 
         # Create a label to display the current coin amount
-        self.coin_amount_label = tk.Label(self, text="Current Coins: $0.00")
+        self.coin_amount_label = tk.Label(
+            self, text="Current Coins: $0.00", font=("Arial", 12, "bold")
+        )
         self.coin_amount_label.grid(
             row=5, column=0, columnspan=len(num_pad) + 4, padx=5, pady=5
         )  # Adjusted the columnspan
@@ -487,4 +598,19 @@ class VendingMachineApp(tk.Tk):
 
 if __name__ == "__main__":
     app = VendingMachineApp()
+
+    # Create the Products instance and pass it to the main app
+    products_data = Products()
+
+    def open_product_management():
+        product_management_window = ProductManagementWindow(
+            app, products_data.get_products()
+        )
+        product_management_window.grab_set()
+
+    open_button = tk.Button(
+        app, text="Open Product Management", command=open_product_management
+    )
+    open_button.pack()
+
     app.mainloop()
