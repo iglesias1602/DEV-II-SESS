@@ -43,9 +43,7 @@ pyinstaller main.py --onefile
 
 This will create an executable file that now can be open and ready to run
 
-~~## Run tests~~
-
-~~`sh WIP`~~
+~~## Run tests~~s
 
 ## Author
 
