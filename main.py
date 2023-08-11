@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, UnidentifiedImageError
 
 BASE_NUMBER = 40
 
@@ -58,8 +58,8 @@ class Products:
 
 
 class Inventory:
-    def __init__(self):
-        self.products_data = Products()
+    def __init__(self, products_data):
+        self.products_data = products_data
         self.stock = {
             product["number"]: 5 for product in self.products_data.get_products()
         }
@@ -183,22 +183,23 @@ class CoinInputWindow(tk.Toplevel):
         ]
         for i, coin_value in enumerate(coin_values):
             img_path = f"assets/img/{coin_images[i]}"
-            coin_img = Image.open(img_path)
-            coin_img = coin_img.resize((60, 60))
-            coin_img = ImageTk.PhotoImage(coin_img)
+            try:
+                coin_img = Image.open(img_path)
+                coin_img = coin_img.resize((60, 60))
+                coin_img = ImageTk.PhotoImage(coin_img)
 
-            coin_button = tk.Button(
-                self,
-                text=f"Add €{coin_value}",
-                image=coin_img,  # Set the image for the button,
-                compound=tk.LEFT,  # Display the image to the left of the text
-                command=lambda value=coin_value: add_coin_callback(float(value)),
-            )
-            coin_button.image = (
-                coin_img  # Keep a reference to the image to avoid garbage collection
-            )
+                coin_button = tk.Button(
+                    self,
+                    text=f"Add €{coin_value}",
+                    image=coin_img,  # Set the image for the button,
+                    compound=tk.LEFT,  # Display the image to the left of the text
+                    command=lambda value=coin_value: add_coin_callback(float(value)),
+                )
+                coin_button.image = coin_img  # Keep a reference to the image to avoid garbage collection
 
-            coin_button.grid(row=i // 2, column=i % 2, padx=5, pady=5)
+                coin_button.grid(row=i // 2, column=i % 2, padx=5, pady=5)
+            except (FileNotFoundError, UnidentifiedImageError):
+                print(f"Error: Could not load the image at {img_path}")
 
         continue_button = tk.Button(
             self,
@@ -235,162 +236,83 @@ class ProductManagementWindow(tk.Toplevel):
         self.title("Product Management")
         self.geometry("800x800")
 
+        self.main_app = parent
+
         self.products_data = products_data
-
-        # Create a canvas to display the product grid
-        self.canvas = tk.Canvas(self, bg="white", width=375, height=750)
-        self.canvas.pack()
-        self.canvas.place(x=10, y=10, anchor="nw")
-
-        # Create a dictionary to store the product number and its corresponding image
-        self.product_images = {}
-
-        # Load the product images and store them in the product_images dictionary
-        self.load_product_images()
-
-        # Initialize the selected product as None
         self.selected_product = None
 
-        # Create the buttons
-        self.edit_button = tk.Button(self, text="Edit", command=self.edit_product)
-        self.edit_button.place(x=450, y=100)
-
-        self.delete_button = tk.Button(self, text="Delete", command=self.delete_product)
-        self.delete_button.place(x=450, y=150)
-
-        self.add_button = tk.Button(self, text="Add", command=self.add_product)
-        self.add_button.place(x=450, y=200)
-
-        # Initially, disable all buttons
-        self.edit_button["state"] = tk.DISABLED
-        self.delete_button["state"] = tk.DISABLED
-        self.add_button["state"] = tk.DISABLED
+        self.edit_button = self.create_button("Edit", self.edit_product, x=450, y=100)
+        self.delete_button = self.create_button(
+            "Delete", self.delete_product, x=450, y=150
+        )
+        self.add_button = self.create_button("Add", self.add_product, x=450, y=200)
+        self.set_buttons_state(disabled=True)
 
         self.create_product_grid()
 
-    def load_product_images(self):
-        for product in self.products_data:
-            number = product["number"]
-            image_path = f"assets/img/{product['image']}"
+        self.previous_selected_button = None
 
-            # Open the image using Pillow
-            img_pil = Image.open(image_path)
+        # Assuming you have an instance of Inventory class named 'inventory'
+        inventory = Inventory(products_data)
 
-            # Calculate the downsampling factor to limit the dimensions to 50x50 pixels
-            img_pil.thumbnail((50, 50))
-
-            # Convert the Pillow image to ImageTk format for tkinter
-            img = ImageTk.PhotoImage(img_pil)
-
-            # Store the image in the product_images dictionary
-            self.product_images[number] = img
+    def create_button(self, text, command, x, y):
+        button = tk.Button(self, text=text, command=command)
+        button.place(x=x, y=y)
+        return button
 
     def create_product_grid(self):
-        # Clear previous content on the canvas
-        self.canvas.delete("all")
+        self.cell_buttons = []
 
-        # Define cell dimensions
-        cell_width = 70
-        cell_height = 120  # Increase the cell height to accommodate product names
+        button_width = 60
+        button_height = 70
 
-        # Sort the products based on their product numbers
-        sorted_products = sorted(self.products_data, key=lambda item: item["number"])
-
-        for product in sorted_products:
-            number = product["number"]
-            image = self.product_images.get(number)
-
-            # Calculate the row and column based on the product number
-            row = (number - BASE_NUMBER) // 5
-            col = (number - BASE_NUMBER) % 5
-
-            # Calculate the position of the cell on the canvas
-            x = col * cell_width + 50
-            y = row * cell_height + 50
-
-            # Draw a rectangle to represent the cell
-            cell_rectangle = self.canvas.create_rectangle(
-                x - cell_width / 2,
-                y - cell_height / 2,
-                x + cell_width / 2,
-                y + cell_height / 2,
-                outline="blue",
-                width=2,
-                tags=f"cell_{product['number']}",
-            )
-
-            # Display the product image on the canvas
-            if image:
-                self.canvas.create_image(
-                    x,
-                    y + 20,
-                    image=image,
-                    anchor="center",
+        for row in range(6):
+            row_buttons = []
+            for col in range(5):
+                button = tk.Button(
+                    self,
+                    text="",
+                    width=button_width,
+                    height=button_height,
+                    command=lambda r=row, c=col: self.on_cell_click(r, c),
                 )
+                x = col * (button_width + 15) + 20
+                y = row * (button_height + 15) + 20
+                button.place(x=x, y=y)
+                row_buttons.append(button)
+            self.cell_buttons.append(row_buttons)
 
-            # Add a label with the product name below the image
-            product_name = product["name"]
-            self.canvas.create_text(x, y + 55, text=product_name, font=("Arial", 12))
+        self.update_cell_buttons()
 
-            # Bind the click event to the rectangle representing the cell
-            self.canvas.tag_bind(
-                f"cell_{product['number']}",
-                "<Button-1>",
-                lambda event, number=product["number"]: self.on_cell_click(
-                    event, number
-                ),
-            )
-
-        # Draw empty slots for product numbers without products
-        for product_number in range(BASE_NUMBER, BASE_NUMBER + 30):
-            if not any(
-                product["number"] == product_number for product in sorted_products
-            ):
-                # Calculate the row and column based on the product number
-                row = (product_number - BASE_NUMBER) // 5
-                col = (product_number - BASE_NUMBER) % 5
-
-                # Calculate the position of the cell on the canvas
-                x = col * cell_width + 50
-                y = row * cell_height + 50
-
-                # Draw a rectangle to represent the empty cell
-                cell_rectangle = self.canvas.create_rectangle(
-                    x - cell_width / 2,
-                    y - cell_height / 2,
-                    x + cell_width / 2,
-                    y + cell_height / 2,
-                    outline="blue",
-                    width=2,
-                    tags=f"cell_{product_number}",  # Add the tag to the empty cell
-                )
-
-                # Display an empty slot on the canvas
-                self.canvas.create_text(
-                    x, y, text="🚫", font=("Arial", 30), anchor="center"
-                )
-
-                # Add a label with the product number below the empty slot
-                self.canvas.create_text(
-                    x,
-                    y + 60,
-                    text=str(product_number),
-                    font=("Arial", 12),
-                    anchor="center",
-                )
-
-                # Bind the click event to the empty cell
-                self.canvas.tag_bind(
-                    f"cell_{product_number}",
-                    "<Button-1>",
-                    lambda event, number=product_number: self.on_cell_click(
-                        event, number
+    def update_cell_buttons(self):
+        for row, row_buttons in enumerate(self.cell_buttons):
+            for col, button in enumerate(row_buttons):
+                product_number = BASE_NUMBER + row * 5 + col
+                product = next(
+                    (
+                        product
+                        for product in self.products_data
+                        if product["number"] == product_number
                     ),
+                    None,
                 )
 
-    def on_cell_click(self, event, product_number):
-        # Update the selected product based on the product number
-        self.selected_product = next(
+                if product:
+                    image_path = f"assets/img/{product['image']}"
+                else:
+                    image_path = "assets/img/empty.png"
+
+                img = Image.open(image_path)
+                img.thumbnail((50, 50))
+                img_tk = ImageTk.PhotoImage(img)
+                button.config(
+                    image=img_tk, text=product_number, compound=tk.TOP, bg="white"
+                )
+                button.image = img_tk
+
+    def on_cell_click(self, row, col):
+        product_number = BASE_NUMBER + row * 5 + col
+        product = next(
             (
                 product
                 for product in self.products_data
@@ -399,31 +321,111 @@ class ProductManagementWindow(tk.Toplevel):
             None,
         )
 
-        # Update the state of the buttons based on whether the slot is empty or not
-        if self.selected_product:
-            # Slot has a product, enable "Edit" and "Delete" buttons, disable "Add" button
-            self.edit_button["state"] = tk.NORMAL
-            self.delete_button["state"] = tk.NORMAL
-            self.add_button["state"] = tk.DISABLED
+        # If another button was selected before, reset its appearance
+        if self.previous_selected_button:
+            self.previous_selected_button.config(relief=tk.RAISED, bg="white")
+
+        # Mark the current button as selected
+        current_button = self.cell_buttons[row][col]
+        current_button.config(relief=tk.SUNKEN, bg="lightblue")
+
+        # Store the current button as the previously selected one
+        self.previous_selected_button = current_button
+
+        if product:
+            self.selected_product = product
+            self.set_buttons_state()
         else:
-            # Slot is empty, enable "Add" button, disable "Edit" and "Delete" buttons
-            self.edit_button["state"] = tk.DISABLED
-            self.delete_button["state"] = tk.DISABLED
-            self.add_button["state"] = tk.NORMAL
+            self.set_buttons_state(disabled=True)
+
+    def set_buttons_state(self, disabled=False):
+        state = tk.DISABLED if disabled else tk.NORMAL
+        self.edit_button["state"] = state
+        self.delete_button["state"] = state
+        self.add_button["state"] = tk.NORMAL if disabled else tk.DISABLED
 
     def edit_product(self):
-        if self.selected_product:
-            # TODO: Implement the edit product functionality
-            print("Edit product:", self.selected_product)
+        if not self.selected_product:
+            return
+
+        # Creating new window for editing product details
+        edit_window = tk.Toplevel(self)
+        edit_window.title("Edit Product Details")
+        edit_window.geometry("350x400")
+        edit_window.configure(bg="#f4f4f4")  # Light gray background
+
+        # Title
+        title_label = tk.Label(
+            edit_window, text="Edit Product", font=("Arial", 20, "bold"), bg="#f4f4f4"
+        )
+        title_label.pack(pady=20)
+
+        # Display product image
+        image_path = f"assets/img/{self.selected_product['image']}"
+        img = Image.open(image_path)
+        img.thumbnail((150, 150))
+        img_tk = ImageTk.PhotoImage(img)
+        label = tk.Label(edit_window, image=img_tk, bg="#f4f4f4")
+        label.image = img_tk
+        label.pack(pady=10)
+
+        # Container frame for entries
+        frame = tk.Frame(edit_window, bg="#f4f4f4")
+        frame.pack(pady=10, padx=20)
+
+        # Display & edit product details
+        label_names = ["Name:", "Slot Number:", "Quantity:", "Price:"]
+        details = [
+            self.selected_product["name"],
+            self.selected_product["number"],
+            self.inventory.get_stock(self.selected_product["number"]),
+            self.selected_product["price"],
+        ]
+        vars_list = []
+
+        for i, label_name in enumerate(label_names):
+            tk.Label(frame, text=label_name, bg="#f4f4f4", font=("Arial", 12)).grid(
+                row=i, column=0, pady=5, sticky="w"
+            )
+            var = tk.StringVar(value=details[i])
+            entry = tk.Entry(frame, textvariable=var, font=("Arial", 12))
+            if label_name == "Slot Number:":
+                entry.config(state="readonly")  # Slot Number is not editable
+            entry.grid(row=i, column=1, pady=5)
+            vars_list.append(var)
+
+        # Save button to update details
+        def save_changes():
+            self.selected_product["name"] = vars_list[0].get()
+            self.inventory.stock[self.selected_product["number"]] = int(
+                vars_list[2].get()
+            )
+            self.selected_product["price"] = vars_list[3].get()
+            edit_window.destroy()
+            self.update_cell_buttons()  # refresh to reflect changes
+
+            # In your product management interface, after updating product data:
+            VendingMachineApp.refresh_product_display()
+
+        save_button = tk.Button(
+            edit_window,
+            text="Save",
+            command=save_changes,
+            bg="#82c9a1",
+            font=("Arial", 12),
+            width=15,
+        )
+        save_button.pack(pady=20)
+
+        edit_window.mainloop()
 
     def delete_product(self):
         if self.selected_product:
-            # TODO: Implement the delete product functionality
             print("Delete product:", self.selected_product)
 
     def add_product(self):
-        # TODO: Implement the add product functionality
-        print("Add product, selected number:", self.selected_product["number"])
+        if self.selected_product:
+            print("Add product, selected number:", self.selected_product["number"])
 
 
 class VendingMachineApp(tk.Tk):
@@ -446,7 +448,7 @@ class VendingMachineApp(tk.Tk):
 
         # Create a Products and inventory instance to access the product data
         self.products_data = Products()
-        self.inventory = Inventory()
+        self.inventory = Inventory(self.products_data)
 
         # Initialize variables for coin input and user selection
         self.current_coins = 0.0
@@ -458,6 +460,9 @@ class VendingMachineApp(tk.Tk):
             product["number"]: tk.IntVar()
             for product in self.products_data.get_products()
         }
+
+        # Redraw the vending machine grid
+        self.create_vending_grid()
 
         # Create the vending machine grid
         self.create_vending_grid()
@@ -476,6 +481,19 @@ class VendingMachineApp(tk.Tk):
         self.product_numbers = set(
             product["number"] for product in self.products_data.get_products()
         )
+
+    def refresh_product_display(self):
+        # Clear previous product display
+        for widget in self.grid_slaves():
+            widget.destroy()
+
+        # Update product and inventory data
+        self.products_data = Products()
+        self.inventory = Inventory()
+        self.product_quantities = {
+            product["number"]: tk.IntVar()
+            for product in self.products_data.get_products()
+        }
 
     def set_background(self):
         # Load the image file
