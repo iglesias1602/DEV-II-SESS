@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, UnidentifiedImageError
 
 BASE_NUMBER = 40
 
@@ -58,14 +58,14 @@ class Products:
 
 
 class Inventory:
-    def __init__(self):
-        self.products_data = Products()
+    def __init__(self, products_data):
+        self.products_data = products_data
         self.stock = {
             product["number"]: 5 for product in self.products_data.get_products()
         }
 
     def decrease_stock(self, product_number):
-        if product_number in self.stock and self.stock[product_number] > 0:
+        if product_number in self.stock:
             self.stock[product_number] -= 1
 
     def get_stock(self, product_number):
@@ -183,22 +183,23 @@ class CoinInputWindow(tk.Toplevel):
         ]
         for i, coin_value in enumerate(coin_values):
             img_path = f"assets/img/{coin_images[i]}"
-            coin_img = Image.open(img_path)
-            coin_img = coin_img.resize((60, 60))
-            coin_img = ImageTk.PhotoImage(coin_img)
+            try:
+                coin_img = Image.open(img_path)
+                coin_img = coin_img.resize((60, 60))
+                coin_img = ImageTk.PhotoImage(coin_img)
 
-            coin_button = tk.Button(
-                self,
-                text=f"Add €{coin_value}",
-                image=coin_img,  # Set the image for the button,
-                compound=tk.LEFT,  # Display the image to the left of the text
-                command=lambda value=coin_value: add_coin_callback(float(value)),
-            )
-            coin_button.image = (
-                coin_img  # Keep a reference to the image to avoid garbage collection
-            )
+                coin_button = tk.Button(
+                    self,
+                    text=f"Add €{coin_value}",
+                    image=coin_img,  # Set the image for the button,
+                    compound=tk.LEFT,  # Display the image to the left of the text
+                    command=lambda value=coin_value: add_coin_callback(float(value)),
+                )
+                coin_button.image = coin_img  # Keep a reference to the image to avoid garbage collection
 
-            coin_button.grid(row=i // 2, column=i % 2, padx=5, pady=5)
+                coin_button.grid(row=i // 2, column=i % 2, padx=5, pady=5)
+            except (FileNotFoundError, UnidentifiedImageError):
+                print(f"Error: Could not load the image at {img_path}")
 
         continue_button = tk.Button(
             self,
@@ -230,16 +231,15 @@ class CoinInputWindow(tk.Toplevel):
 
 
 class ProductManagementWindow(tk.Toplevel):
-    def __init__(self, parent, products_data, update_callback=None):
+    def __init__(self, parent, products_data):
         super().__init__(parent)
-        self.parent = parent
-
         self.title("Product Management")
-        self.geometry("550x550")
+        self.geometry("800x800")
+
+        self.main_app = parent
 
         self.products_data = products_data
         self.selected_product = None
-        self.update_callback = update_callback  # Store it as an instance variable
 
         self.edit_button = self.create_button("Edit", self.edit_product, x=450, y=100)
         self.delete_button = self.create_button(
@@ -251,6 +251,9 @@ class ProductManagementWindow(tk.Toplevel):
         self.create_product_grid()
 
         self.previous_selected_button = None
+
+        # Assuming you have an instance of Inventory class named 'inventory'
+        inventory = Inventory(products_data)
 
     def create_button(self, text, command, x, y):
         button = tk.Button(self, text=text, command=command)
@@ -345,13 +348,10 @@ class ProductManagementWindow(tk.Toplevel):
         if not self.selected_product:
             return
 
-        # Assuming you have an instance of Inventory class named 'inventory'
-        inventory = Inventory()
-
         # Creating new window for editing product details
         edit_window = tk.Toplevel(self)
         edit_window.title("Edit Product Details")
-        edit_window.geometry("350x500")
+        edit_window.geometry("350x400")
         edit_window.configure(bg="#f4f4f4")  # Light gray background
 
         # Title
@@ -378,7 +378,7 @@ class ProductManagementWindow(tk.Toplevel):
         details = [
             self.selected_product["name"],
             self.selected_product["number"],
-            inventory.get_stock(self.selected_product["number"]),
+            self.inventory.get_stock(self.selected_product["number"]),
             self.selected_product["price"],
         ]
         vars_list = []
@@ -397,16 +397,15 @@ class ProductManagementWindow(tk.Toplevel):
         # Save button to update details
         def save_changes():
             self.selected_product["name"] = vars_list[0].get()
-            inventory.stock[self.selected_product["number"]] = int(vars_list[2].get())
+            self.inventory.stock[self.selected_product["number"]] = int(
+                vars_list[2].get()
+            )
             self.selected_product["price"] = vars_list[3].get()
             edit_window.destroy()
             self.update_cell_buttons()  # refresh to reflect changes
 
-            if self.update_callback:
-                self.update_callback()  # Notify the main app about the change
-
-                # After saving the changes, refresh the main app's product display
-            self.parent.refresh_product_display()
+            # In your product management interface, after updating product data:
+            VendingMachineApp.refresh_product_display()
 
         save_button = tk.Button(
             edit_window,
@@ -429,33 +428,71 @@ class ProductManagementWindow(tk.Toplevel):
             print("Add product, selected number:", self.selected_product["number"])
 
 
-class VendingGridFrame(tk.Frame):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.parent = parent
+class VendingMachineApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Vending Machine Simulator")
+        self.geometry("650x840")  # Set a larger size for the main window
+        self.resizable(False, False)
 
         self.copied_image_label = None  # Add this line to store the label reference
+
+        # Call the method to set the background image
+        self.set_background()
 
         # Create a list to store all the PhotoImage instances for the product images
         self.product_images = []
 
         # Create a dictionary to store the product number and its corresponding image
         self.product_images_dict = {}
-        # Call the method to set the background image
-        self.set_background()
 
-        # Create the vending machine grid
-        self.create_vending_grid()
+        # Create a Products and inventory instance to access the product data
+        self.products_data = Products()
+        self.inventory = Inventory(self.products_data)
 
-        # Create a set to store the product numbers present in the vending machine
-        self.product_numbers = set(
-            product["number"] for product in self.parent.products_data.get_products()
-        )
+        # Initialize variables for coin input and user selection
+        self.current_coins = 0.0
+        self.selected_product = None
+        self.selected_number = ""
 
         # Create a dictionary to store the quantity of each product
         self.product_quantities = {
             product["number"]: tk.IntVar()
-            for product in self.parent.products_data.get_products()
+            for product in self.products_data.get_products()
+        }
+
+        # Redraw the vending machine grid
+        self.create_vending_grid()
+
+        # Create the vending machine grid
+        self.create_vending_grid()
+
+        # Create the 'buy' button
+        self.create_buy_button()
+
+        # Create the numpad
+        self.transaction = Transaction(self)
+        self.create_numpad()
+
+        # Variable to store the id of the scheduled countdown
+        self.countdown_id = None
+
+        # Create a set to store the product numbers present in the vending machine
+        self.product_numbers = set(
+            product["number"] for product in self.products_data.get_products()
+        )
+
+    def refresh_product_display(self):
+        # Clear previous product display
+        for widget in self.grid_slaves():
+            widget.destroy()
+
+        # Update product and inventory data
+        self.products_data = Products()
+        self.inventory = Inventory()
+        self.product_quantities = {
+            product["number"]: tk.IntVar()
+            for product in self.products_data.get_products()
         }
 
     def set_background(self):
@@ -492,47 +529,110 @@ class VendingGridFrame(tk.Frame):
             BASE_NUMBER + 29
         )  # The maximum product number you want to display
 
-        for product in self.parent.products_data.get_products():
+        # Clear the existing widgets in the vending grid
+        for widget in self.grid_slaves():
+            widget.destroy()
+
+        # Create a dictionary to store the product number and its corresponding image
+        product_images_dict = {}
+
+        for product in self.products_data.get_products():
             number = product["number"]
+            image_path = f"assets/img/{product['image']}"
+
             if number <= max_product_number:
                 name = product["name"]
                 price = product["price"]
-                image_path = f"assets/img/{product['image']}"
 
-                # Open the image using Pillow
-                img_pil = Image.open(image_path)
-                img_pil.thumbnail((50, 50))
-                img = ImageTk.PhotoImage(img_pil)
+                if self.inventory.get_stock(number) > 0:
+                    # Product is available, display the product image
+
+                    # Open the image using Pillow
+                    img_pil = Image.open(image_path)
+
+                    # Calculate the downsampling factor to limit the dimensions to 50x50 pixels
+                    img_pil.thumbnail((50, 50))
+
+                    # Convert the Pillow image to ImageTk format for tkinter
+                    img = ImageTk.PhotoImage(img_pil)
+
+                    # Store the image in the dictionary
+                    product_images_dict[number] = img
+
+                    # Store the image in the dictionary with the product number as the key
+                    self.product_images_dict[number] = img
+
+                    # Append the PhotoImage instance to the product_images list
+                    self.product_images.append(img)
+                else:
+                    # Product is out of stock, display the empty symbol image
+
+                    empty_image_path = "assets/img/empty.png"
+                    empty_img = Image.open(empty_image_path)
+                    empty_img.thumbnail((50, 50))
+                    img = ImageTk.PhotoImage(empty_img)
+
+                    # Store the empty image in the dictionary
+                    product_images_dict[number] = img
+
+                    # Store the image in the dictionary with the product number as the key
+                    self.product_images_dict[number] = img
+            else:
+                # Slot is out of range, display the empty symbol image
+
+                empty_image_path = "assets/img/empty.png"
+                empty_img = Image.open(empty_image_path)
+                empty_img.thumbnail((50, 50))
+                img = ImageTk.PhotoImage(empty_img)
+
+                # Store the empty image in the dictionary
+                product_images_dict[number] = img
+
+                # Store the image in the dictionary with the product number as the key
                 self.product_images_dict[number] = img
-                self.product_images.append(img)
 
-                row = (number - BASE_NUMBER) // 5
-                col = (number - BASE_NUMBER) % 5
+            # Create and display the image label
+            row = (number - BASE_NUMBER) // 5
+            col = (number - BASE_NUMBER) % 5
 
-                image_label = tk.Label(self, image=img)
-                image_label.place(x=col * 45 + 122, y=row * 73 + 153, anchor="center")
+            image_label = tk.Label(self, image=img)
+            image_label.image = img
+            image_label.grid(row=row + 1, column=col, padx=5, pady=5)
+            image_label.place(x=col * 45 + 122, y=row * 73 + 153, anchor="center")
 
-                info_label_number = tk.Label(self, text=f"{number}")
-                info_label_number.place(
-                    x=col * 45 + 122, y=row * 73 + 175, anchor="center"
-                )
+            # Create and display the product number label
+            info_label_number = tk.Label(self, text=f"{number}")
+            info_label_number.grid(row=row + 1, column=col, padx=5, pady=5)
+            info_label_number.place(x=col * 45 + 122, y=row * 73 + 175, anchor="center")
 
-                info_label = tk.Label(self, text=f"€{price:.2f}")
-                info_label.place(x=col * 45 + 122, y=row * 73 + 190, anchor="center")
+            # Create and display the product price label
+            info_label = tk.Label(self, text=f"€{price:.2f}")
+            info_label.grid(row=row + 1, column=col, padx=5, pady=5)
+            info_label.place(x=col * 45 + 122, y=row * 73 + 190, anchor="center")
 
+        # Continue with the remaining code for empty slot labels and other elements
+        # ...
+
+        # Create empty slot labels for product numbers without products
         for number in range(BASE_NUMBER, max_product_number + 1):
-            if number not in self.product_images_dict:
+            if number not in product_images_dict:
                 row = (number - BASE_NUMBER) // 5
                 col = (number - BASE_NUMBER) % 5
 
                 empty_slot_label = tk.Label(
-                    self, text="🚫", font=("Arial", 18), fg="red"
+                    self,
+                    text="🚫",
+                    font=("Arial", 18),
+                    fg="red",
                 )
+                empty_slot_label.grid(row=row + 1, column=col, padx=5, pady=5)
                 empty_slot_label.place(
                     x=col * 45 + 123, y=row * 73 + 150, anchor="center"
                 )
 
+                # Create and display the product number label
                 info_label_number = tk.Label(self, text=f"{number}")
+                info_label_number.grid(row=row + 1, column=col, padx=5, pady=5)
                 info_label_number.place(
                     x=col * 45 + 122, y=row * 73 + 175, anchor="center"
                 )
@@ -542,63 +642,24 @@ class VendingGridFrame(tk.Frame):
             self.copied_image_label.destroy()
             self.copied_image_label = None
 
-    def refresh(self):
-        # Re-initialize the products data
-        self.parent.products_data = Products()
-
-        # Clear old product displays
-        for widget in self.winfo_children():
-            widget.destroy()
-
-        # Set the background again
-        self.set_background()
-
-        # Re-create the vending grid with the new products
-        self.create_vending_grid()
-
-
-class BuyButtonFrame(tk.Frame):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.parent = parent
-
-        # Create the 'buy' button
-        self.create_buy_button()
-
     def create_buy_button(self):
         buy_button = tk.Button(
             self,
             text="Buy",
-            command=NumpadFrame.show_coin_input_window,
+            command=self.show_coin_input_window,
             bg="green",
             fg="white",
             font=("Arial", 10),
         )
-        buy_button.place(x=16, y=14, anchor="center")
+        buy_button.grid(row=1, column=2, padx=5, pady=5)
+        buy_button.place(x=375, y=245, anchor="center")
 
-
-class NumpadFrame(tk.Frame):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.parent = parent
-
-        # Initialize variables for coin input and user selection
-        self.current_coins = 0.0
-        self.selected_product = None
-        self.selected_number = ""
-
-        # Create the numpad
-        self.transaction = Transaction(self)
-        self.create_numpad()
-        # Variable to store the id of the scheduled countdown
-        self.countdown_id = None
+    def show_coin_input_window(self):
+        coin_input_window = CoinInputWindow(self, self.add_coin)
 
     def add_coin(self, value):
         self.current_coins += value
         self.update_coin_label()
-
-    def show_coin_input_window(self):
-        coin_input_window = CoinInputWindow(self.add_coin)
 
     def clear_coins(self):
         self.current_coins = 0.0
@@ -639,11 +700,11 @@ class NumpadFrame(tk.Frame):
                 )
 
             num_button.grid(
-                row=row + 1, column=col, columnspan=3, padx=2, pady=2
+                row=row + 5, column=col, columnspan=10, padx=2, pady=2
             )  # Adjusted row to start from 5
 
             # Move the numpad 500 pixels to the left
-            num_button.place(x=-164 + col * 40, y=130 + row * 52)
+            num_button.place(x=275 + col * 40, y=260 + row * 52)
 
         # Create a label to display the typed number
         self.typed_number_label = tk.Label(
@@ -666,9 +727,9 @@ class NumpadFrame(tk.Frame):
         self.coin_amount_label.grid(
             row=5, column=0, columnspan=len(num_pad) + 4, padx=5, pady=5
         )  # Adjusted the columnspan
-        self.coin_amount_label.place(x=100, y=50, anchor="center")
+        self.coin_amount_label.place(x=535, y=200, anchor="center")
 
-        self.typed_number_label.place(x=20 + col * 2, y=0 + row * 25)
+        self.typed_number_label.place(x=195 + col * 40, y=60 + row * 52)
 
     def clear_typed_number(self):
         self.transaction.clear_typed_number()
@@ -680,54 +741,23 @@ class NumpadFrame(tk.Frame):
         self.transaction.on_num_button_click(number)
 
 
-class VendingMachineApp(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        self.title("Vending Machine Simulator")
-        self.geometry("650x840")
+if __name__ == "__main__":
+    app = VendingMachineApp()
 
-        # Create a Products and inventory instance to access the product data
-        self.products_data = Products()
-        self.inventory = Inventory()
+    # Create the Products instance and pass it to the main app
+    products_data = Products()
 
-        # Vending Grid Frame
-        self.vending_grid_frame = VendingGridFrame(self)
-        self.vending_grid_frame.config(bg="green", width=450, height=800)
-        self.vending_grid_frame.pack(side="left", padx=10)
-
-        # Buy Button Frame
-        self.buy_button_frame = BuyButtonFrame(self)
-        self.buy_button_frame.config(width=34, height=28, bg="red")
-        self.buy_button_frame.place(x=369, y=250)  # Adjust coordinates as needed
-
-        # Numpad Frame
-        self.numpad_frame = NumpadFrame(self)
-        self.numpad_frame.config(bg="red", width=200, height=350)
-        self.numpad_frame.pack(side="left", padx=10)
-
-        # Management Button
-        self.button_frame = tk.Frame(self)
-        self.button_frame.pack(pady=10)
-        self.open_button = tk.Button(
-            self.button_frame,
-            text="Open Product Management",
-            command=self.open_product_management,
-        )
-        self.open_button.pack()
-
-    def reload_products(self):
-        self.products_data = Products()  # Reload the Products instance.
-        self.refresh_product_display()
-
-    def open_product_management(self):
+    def open_product_management():
         product_management_window = ProductManagementWindow(
-            self,
-            self.products_data.get_products(),
-            update_callback=self.reload_products,
+            app, products_data.get_products()
         )
         product_management_window.grab_set()
 
+    open_button = tk.Button(
+        app, text="Open Product Management", command=open_product_management
+    )
+    open_button.pack()
 
-if __name__ == "__main__":
-    app = VendingMachineApp()
+    # working code
+
     app.mainloop()
