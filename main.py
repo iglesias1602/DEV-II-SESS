@@ -348,10 +348,13 @@ class ProductManagementWindow(tk.Toplevel):
         if not self.selected_product:
             return
 
+        # Assuming you have an instance of Inventory class named 'inventory'
+        self.inventory = Inventory(self.products_data)
+
         # Creating new window for editing product details
         edit_window = tk.Toplevel(self)
         edit_window.title("Edit Product Details")
-        edit_window.geometry("350x400")
+        edit_window.geometry("350x500")
         edit_window.configure(bg="#f4f4f4")  # Light gray background
 
         # Title
@@ -378,7 +381,7 @@ class ProductManagementWindow(tk.Toplevel):
         details = [
             self.selected_product["name"],
             self.selected_product["number"],
-            self.inventory.get_stock(self.selected_product["number"]),
+            inventory.get_stock(self.selected_product["number"]),
             self.selected_product["price"],
         ]
         vars_list = []
@@ -397,15 +400,16 @@ class ProductManagementWindow(tk.Toplevel):
         # Save button to update details
         def save_changes():
             self.selected_product["name"] = vars_list[0].get()
-            self.inventory.stock[self.selected_product["number"]] = int(
-                vars_list[2].get()
-            )
+            inventory.stock[self.selected_product["number"]] = int(vars_list[2].get())
             self.selected_product["price"] = vars_list[3].get()
             edit_window.destroy()
             self.update_cell_buttons()  # refresh to reflect changes
 
-            # In your product management interface, after updating product data:
-            VendingMachineApp.refresh_product_display()
+            if self.update_callback:
+                self.update_callback()  # Notify the main app about the change
+
+                # After saving the changes, refresh the main app's product display
+            self.parent.refresh_product_display()
 
         save_button = tk.Button(
             edit_window,
