@@ -465,9 +465,6 @@ class VendingMachineApp(tk.Tk):
             for product in self.products_data.get_products()
         }
 
-        # Redraw the vending machine grid
-        self.create_vending_grid()
-
         # Create the vending machine grid
         self.create_vending_grid()
 
