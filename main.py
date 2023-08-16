@@ -231,7 +231,7 @@ class CoinInputWindow(tk.Toplevel):
 
 
 class ProductManagementWindow(tk.Toplevel):
-    def __init__(self, parent, products_data):
+    def __init__(self, parent, products_data, inventory):
         super().__init__(parent)
         self.title("Product Management")
         self.geometry("800x800")
@@ -253,7 +253,7 @@ class ProductManagementWindow(tk.Toplevel):
         self.previous_selected_button = None
 
         # Assuming you have an instance of Inventory class named 'inventory'
-        inventory = Inventory(products_data)
+        self.inventory = inventory
 
     def create_button(self, text, command, x, y):
         button = tk.Button(self, text=text, command=command)
@@ -746,10 +746,11 @@ if __name__ == "__main__":
 
     # Create the Products instance and pass it to the main app
     products_data = Products()
+    inventory = Inventory(products_data)
 
     def open_product_management():
         product_management_window = ProductManagementWindow(
-            app, products_data.get_products()
+            app, products_data.get_products(), inventory
         )
         product_management_window.grab_set()
 
