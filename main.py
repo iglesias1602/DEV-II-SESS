@@ -234,7 +234,7 @@ class ProductManagementWindow(tk.Toplevel):
     def __init__(self, parent, products_data, inventory):
         super().__init__(parent)
         self.title("Product Management")
-        self.geometry("800x800")
+        self.geometry("550x550")
 
         self.main_app = parent
 
